@@ -1,0 +1,735 @@
+﻿@page "/"
+@using BlazorApp1.Data;
+<h1>Library Management System</h1>
+<h2 style="@Title_Text_Style">@menu_title</h2>
+<button style="@BTN1Style" @onclick="button1" @bind="@txt1">@btn1</button> 
+<label style="@LabelStyle1">@cmd</label>
+<input style="@InputStyle1" @bind-value="@title" />
+
+<label style="@LabelStyle2">@cmd2</label>
+<input style="@InputStyle2" @bind-value="@author" />
+
+<label style="@LabelStyle3">@cmd3</label>
+<input style="@InputStyle3" @bind-value="@isbn" />
+<textarea @bind="@text" rows="14" cols="60" style="@text_style" />
+<button style="@InputBTNStyle" @onclick="SubmitBook">Submit</button>
+<br>
+<button style="@BTN2Style" @onclick="button2">@btn2</button>
+<br>
+<button style="@BTN3Style" @onclick="button3">@btn3</button>
+<br>
+<button style="@BTN4Style" @onclick="button4">@btn4</button>
+<br>
+<button style="@BTN6Style" @onclick="ShowList">@btn6</button>
+<button style="@BTN5Style" @onclick="Back">@btn5</button>
+<p>Choose an option: </p>
+<div>
+    @directions
+</div>
+<br />
+<br />
+
+@code
+{
+    private string txt1;
+    List<Book> books = new List<Book>();
+    Book book;
+    User user;
+    List<User> users = new List<User>();
+    private string book_ID;
+    private string user_ID;
+    private string cmd = "Enter Book Title: ";
+    private string cmd2 = "Enter Book Author";
+    private string cmd3 = "Enter Book ISBN";
+    private string Title_Text_Style = "display:none";
+    private string menu_title;
+    private string mode="start";
+    private string text;
+    private string text_style = "display:none";
+    Dictionary<User, List<Book>> borrowedBooks = new Dictionary<User, List<Book>>(); 
+    private string title;
+    private string author;
+    private string isbn;
+    private string LabelStyle1 = "display:none";
+    private string LabelStyle2 = "display:none";
+    private string LabelStyle3 = "display:none";
+    private string InputStyle1 = "display:none";
+    private string InputStyle2 = "display:none";
+    private string InputStyle3 = "display:none";
+    private string InputBTNStyle = "display:none";
+    private string BTN1Style;
+    private string BTN2Style;
+    private string BTN3Style;
+    private string BTN4Style;
+    private string BTN5Style = "display:none";
+    private string BTN6Style = "display:block";
+    private string btn1 = "Manage Books";
+    private string btn2 = "Manage Users";
+    private string btn3 = "Borrow Books";
+    private string btn4 = "Return Books";
+
+    private string btn6 = "Show List of borrowed books";
+    private string btn5 = "Back";
+    private string directions;
+    void ChangeMenu(string ClickedBTN)
+    {
+        if (ClickedBTN == "Manage Books")
+        {
+            Title_Text_Style = "display:block";
+            menu_title = "Manage Books";
+            btn1 = "1. Add Book";
+            btn2 = "2. Edit Book";
+            btn3 = "3. Delete Book";
+            btn4 = "4. List Books";
+            mode = "Manage Books";
+            BTN5Style = "display:block";
+            ShowHideButtons("display:block", "display:block", "display:block", "display:block", "display:block", "display:none");
+        }
+        else if (ClickedBTN == "Manage Users")
+        {
+            Title_Text_Style = "display:block";
+            menu_title = ("Manage Users");
+            btn1 = ("1. Add User");
+            btn2 = ("2. Edit User");
+            btn3 = ("3. Delete User");
+            btn4 = ("4. List Users");  
+            ShowHideButtons("display:block", "display:block", "display:block", "display:block", "display:block", "display:none");
+        }
+        else if (ClickedBTN == "Borrow Books")
+        {
+            Title_Text_Style = "display:block";
+            menu_title = ("Borrow Books");
+            mode = "Borrow";
+            // ShowHideInputs("display:block", "display:none", "display:none", "display:block", "display:none", "display:none", "display:none");
+            // ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:block");
+
+            ShowHideInputs("display:block", "display:none", "display:none", "display:block", "display:none", "display:none", "display:none");
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+            text_style = "display:block";
+            InputBTNStyle = "display:block";
+            cmd = "Enter the ID of the book the user wants to borrow."; 
+        }
+        else if (ClickedBTN == "Return Books")
+        {
+            Title_Text_Style = "display:block";
+            menu_title = ("Return Books");
+            mode = "Return";
+            ShowHideInputs("display:block", "display:none", "display:none", "display:block", "display:none", "display:none", "display:none");
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+            text_style = "display:block";
+            InputBTNStyle = "display:block";
+            ListUsers();
+            cmd = "Enter the ID of the user.";
+        }
+        else if (ClickedBTN == "1. Add Book")
+        {
+            Title_Text_Style = "display:block";
+            //btn1 = "1. Add Book";
+            ShowHideInputs("display:block", "display:block", "display:block", "display:block", "display:block", "display:block", "display:block");
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+        }
+        else if (ClickedBTN == "1. Add User")
+        {
+            Title_Text_Style = "display:block";
+            // btn1 = "1. Add Book";
+            ShowHideInputs("display:block", "display:block", "display:block", "display:block", "display:block", "display:block", "display:block");
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+            BTN6Style = "display:none";
+        }
+        else if (ClickedBTN == "2. Edit Book")
+        {
+            Title_Text_Style = "display:block"; 
+            ShowHideInputs("display:block", "display:none", "display:none", "display:block", "display:none", "display:none", "display:none");
+            mode = "BookID";
+            cmd = "Enter ID of the book.";
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:block", "display:none");
+            InputBTNStyle = "display:block;";
+            ListBooks();
+            BTN6Style = "display:none";
+        }
+        else if (ClickedBTN == "2. Edit User")
+        {
+            Title_Text_Style = "display:block";
+            mode = "UserID";
+            ShowHideInputs("display:block", "display:none", "display:none", "display:block", "display:none", "display:none", "display:none"); 
+            cmd = "Enter ID of the user.";
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:block", "display:none");
+            InputBTNStyle = "display:block;";
+            ListUsers();
+            BTN6Style = "display:none";
+        }
+        else if (ClickedBTN == "3. Delete Book")
+        {
+            Title_Text_Style = "display:block";
+            // btn1 = "1. Add Book";
+            ShowHideInputs("display:block", "display:none", "display:none", "display:block", "display:none", "display:none", "display:none");
+            mode = "DeleteID";
+            cmd = "Enter ID of the book.";
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+            InputBTNStyle = "display:block;";
+            ListBooks();
+            BTN6Style = "display:none";
+        }
+        else if (ClickedBTN == "3. Delete User")
+        {
+            Title_Text_Style = "display:block";
+            //btn1 = "1. Add Book";
+            ShowHideInputs("display:block", "display:none", "display:none", "display:block", "display:none", "display:none", "display:none");
+            mode = "DeleteUserID";
+            cmd = "Enter ID of the User.";
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+            InputBTNStyle = "display:block;";
+            ListUsers();
+            BTN6Style = "display:none";
+        }
+        else if (ClickedBTN == "4. List Books")
+        {
+            Title_Text_Style = "display:block"; 
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:block", "display:none");
+            ListBooks();
+            BTN6Style = "display:none";
+        }
+        else if (ClickedBTN == "4. List Users")
+        {
+            Title_Text_Style = "display:block";
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:block", "display:none");
+            ListUsers();
+            BTN6Style = "display:none";
+        }
+    } 
+
+
+
+    void ListBooks()
+    {
+        text_style = "display:block;";
+        text += "Available Books:\n";
+
+        var bookGroups = books.GroupBy(b => b.Id).Select(bookGroup => new { Book = bookGroup.First(), Count = bookGroup.Count() });
+
+        foreach (var group in bookGroups)
+        {
+            text += $"{group.Book.Id}. {group.Book.Title} by {group.Book.Author} (ISBN: {group.Book.ISBN}) - Available Copies: {group.Count}\n";
+        }
+    }
+
+    void ListUsers()
+    {
+        text_style = "display:block;";
+        text += "Users:\n"; 
+
+        foreach (var user in users)
+        {
+            text += ($"{user.Id}. {user.Name} (Email: {user.Email})\n");
+        } 
+    }
+
+    void ShowHideButtons(string ShowHide1, string ShowHide2, string ShowHide3, string ShowHide4, string ShowHide5, string ShowHide6)
+    {
+        BTN1Style = ShowHide1; 
+        BTN2Style = ShowHide2; 
+        BTN3Style = ShowHide3; 
+        BTN4Style = ShowHide4; 
+        BTN5Style = ShowHide5;
+        BTN6Style = ShowHide6;
+    }
+
+    void ShowHideInputs(string ShowHide1, string ShowHide2, string ShowHide3, string ShowHide4, string ShowHide5, string ShowHide6, string ShowHide7)
+    {
+        LabelStyle1 = ShowHide1;
+        LabelStyle2 = ShowHide2;
+        LabelStyle3 = ShowHide3;
+        InputStyle1 = ShowHide4;
+        InputStyle2 = ShowHide5;
+        InputStyle3 = ShowHide6;
+        InputBTNStyle = ShowHide7;
+        if (mode == "Borrow")
+        {
+            ListBooks();
+            return;    
+        }
+        if (mode == "Return")
+        {
+            return;    
+        }
+        if (btn1 == "1. Add Book" && mode != "edit books")
+        {
+            mode = "Add Book";
+            cmd = "Enter Book Title: ";
+            cmd2 = "Enter Book Author";
+            cmd3 = "Enter Book ISBN";
+
+        }
+        else if (btn1 == "1. Add User" && mode !="UserID" && mode !="edit users")
+        {
+            mode = "Add User";
+            cmd = "Enter User Name: ";
+            cmd2 = "Enter User Email";
+            LabelStyle3 = "display:none";
+            InputStyle3 = "display:none";
+            //cmd3 = "Enter Book ISBN";
+        }
+        else if (btn1 == "1. Add User" && mode == "UserID")
+        {
+            mode = "UserID";
+            cmd = "Enter User Name: ";
+            cmd2 = "Enter User Email";
+            LabelStyle3 = "display:none";
+            InputStyle3 = "display:none";
+            //cmd3 = "Enter Book ISBN";
+        }
+        if (cmd == "Enter User Name: ")
+        {
+            LabelStyle3 = "display:none";
+            InputStyle3 = "display:none";
+        }
+    }
+
+    void EditBook()
+    { 
+        //Console.Write("\nEnter Book ID to Edit: ");
+        //ShowHideButtons("display:block", "display:block", "display:block", "display:block", "display:block");
+
+        text += "\nType the ID that matches the book you want to search for";
+        // if (int.TryParse(title, out int bookId))
+        // {
+
+        // Book book = books.FirstOrDefault(b => b.Id == bookId);
+
+        if (book != null)
+        {
+            string str1 = ("Enter new Title (leave blank to keep current): ");
+            //string title = Console.ReadLine();
+            if (!string.IsNullOrEmpty(title)) book.Title = title;
+
+            string str2= ("Enter new Author (leave blank to keep current): ");
+            // string author = Console.ReadLine();
+            if (!string.IsNullOrEmpty(author)) book.Author = author;
+
+            string str3= ("Enter new ISBN (leave blank to keep current): ");
+            //string isbn = Console.ReadLine();
+            ShowHideInputs("display:block", "display:block", "display:block", "display:block", "display:block", "display:block", "display:block");
+            if (!string.IsNullOrEmpty(isbn)) book.ISBN = isbn;
+
+            text = ("Book updated successfully!\n");
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:block", "display:none");
+        }
+        else
+        {
+            text = ("Book not found!\n");
+        }
+        // }
+        // else
+        // {
+        //     text = ("Invalid input!\n");
+        // }
+    }
+
+    void EditUser()
+    {
+
+        //ListUsers(); 
+        text+=("\nEnter User ID to Edit: ");
+        ShowHideInputs("display:block", "display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+        // if (int.TryParse(Console.ReadLine(), out int userId))
+        // {
+
+        //User user = users.FirstOrDefault(u => u.Id == userId);
+
+        if (user != null)
+        {
+            //Console.Write("Enter new Name (leave blank to keep current): ");
+            //string name = Console.ReadLine();
+            if (!string.IsNullOrEmpty(title)) user.Name = title;
+
+            //Console.Write("Enter new Email (leave blank to keep current): ");
+            //string email = Console.ReadLine();
+            if (!string.IsNullOrEmpty(author)) user.Email = author;
+
+            text = ("User updated successfully!\n");
+        }
+        else
+        {
+            text = ("User not found!\n");
+        }
+        // }
+        // else
+        // {
+        //     Console.WriteLine("Invalid input!\n");
+        // }
+    }
+
+    void DeleteBook()
+    {
+
+        //ListBooks();
+
+        //Console.Write("\nEnter Book ID to Delete: ");
+
+        // if (int.TryParse(Console.ReadLine(), out int bookId))
+        // {
+
+        // Book book = books.FirstOrDefault(b => b.Id == bookId);
+
+        if (book != null)
+        {
+            books.Remove(book);
+            text = ("Book deleted successfully!\n");
+        }
+        else
+        {
+            text = ("Book not found!\n");
+        }
+        // }
+        // else
+        // {
+        //     Console.WriteLine("Invalid input!\n");
+        // }
+    }
+
+    void DeleteUser()
+    {
+
+
+        if (user != null)
+        {
+            users.Remove(user);
+            text = ("User deleted successfully!\n");
+        }
+        else
+        {
+            text = ("User not found!\n");
+        }
+
+    }
+
+    void BorrowBook(string bID, string uID)
+    {
+
+        // ListBooks();
+        // text = ("\nEnter Book ID to Borrow: ");
+
+        if (int.TryParse(bID, out int bookId))
+        {
+
+            Book book = books.FirstOrDefault(b => b.Id == bookId);
+
+            if (book != null && books.Count(b => b.Id == bookId) > 0)
+            {
+
+                ListUsers();
+                text=("\nEnter User ID who is borrowing the book: ");
+
+                if (int.TryParse(uID, out int userId))
+                {
+
+                    User user = users.FirstOrDefault(u => u.Id == userId);
+
+                    if (user != null)
+                    {
+                        if (!borrowedBooks.ContainsKey(user))
+                        {
+                            borrowedBooks[user] = new List<Book>();
+                        }
+                        borrowedBooks[user].Add(book);
+                        books.Remove(book);
+                        text = ("Book borrowed successfully!\n");
+                    }
+                    else
+                    {
+                        text = ("User not found!\n");
+                    }
+                }
+                else
+                {
+                    text = ("Invalid input!\n");
+                }
+            }
+            else
+            {
+                text = ("Book not found or no available copies!\n");
+            }
+        }
+        else
+        {
+            text = ("Invalid input!\n");
+        }
+    }
+
+    void ReturnBook(string bID, string uID)
+    {
+
+
+        
+
+        if (int.TryParse(uID, out int userId))
+        {
+
+            User user = users.FirstOrDefault(u => u.Id == userId);
+
+            if (user != null && borrowedBooks.ContainsKey(user) && borrowedBooks[user].Count > 0)
+            {
+
+                text = ("Borrowed Books:");
+
+                for (int i = 0; i < borrowedBooks[user].Count; i++)
+                {
+                    text = ($"{i + 1}. {borrowedBooks[user][i].Title} by {borrowedBooks[user][i].Author} (ISBN: {borrowedBooks[user][i].ISBN})");
+                }
+
+                text = ("\nEnter the number of the book to return: ");
+
+                if (int.TryParse(bID, out int bookNumber) && bookNumber >= 1 && bookNumber <= borrowedBooks[user].Count)
+                {
+
+                    Book bookToReturn = borrowedBooks[user][bookNumber - 1];
+
+                    borrowedBooks[user].RemoveAt(bookNumber - 1);
+                    books.Add(bookToReturn);
+
+                    text = ("Book returned successfully!\n");
+                }
+                else
+                {
+                    text = ("Invalid input!\n");
+                }
+            }
+            else
+            {
+               text=("User not found or no borrowed books!\n");
+            }
+        }
+        else
+        {
+            text = ("Invalid input!\n");
+        }
+    }
+
+    void SubmitBook()
+    {
+        if (mode == "BookID")
+        {
+            if (int.TryParse(title, out int bookId))
+            {
+                book = books.FirstOrDefault(b => b.Id == bookId);
+
+                mode = "edit books";
+                cmd = "Enter Book Title: ";
+                ShowHideInputs("display:block", "display:block", "display:block", "display:block", "display:block", "display:block", "display:block");
+                ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:block", "display:none");
+                text = mode;
+            }
+            else
+            {
+                text = ("Invalid input!\n");
+            }
+        }
+        else if (mode == "UserID")
+        {
+            if (int.TryParse(title, out int userId))
+            {
+                user = users.FirstOrDefault(u => u.Id == userId);
+                mode = "edit users";
+                cmd = "Enter User Name: ";
+                ShowHideInputs("display:block", "display:block", "display:block", "display:block", "display:block", "display:block", "display:block");
+                ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:block", "display:none");
+            }
+            else
+            {
+                text = ("Invalid input!\n");
+            }
+        }
+        else if (mode == "edit books")
+        {
+            EditBook();
+            mode = "";
+        }
+        else if (mode == "edit users")
+        {
+            mode = "";
+
+            EditUser();
+        }
+        else if (mode == "DeleteID")
+        {
+            if (int.TryParse(title, out int bookId))
+            {
+                text = ("valid input!\n");
+                book = books.FirstOrDefault(b => b.Id == bookId);
+                DeleteBook();
+                mode = "Delete";
+                //cmd = "Enter Book Title: ";
+                ShowHideInputs("display:none", "display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+                ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:block", "display:none");
+            }
+            else
+            {
+                text = ("Invalid input!\n");
+            }
+        }
+        else if (mode == "DeleteUserID")
+        {
+            if (int.TryParse(title, out int userId))
+            {
+                text = ("valid input!\n");
+                user = users.FirstOrDefault(u => u.Id == userId);
+                DeleteUser();
+                mode = "DeleteUser";
+                //cmd = "Enter Book Title: ";
+                ShowHideInputs("display:none", "display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+                ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:block", "display:none");
+            }
+            else
+            {
+                text = ("Invalid input!\n");
+            }
+        }
+        else if (mode == "Delete")
+        {
+            DeleteBook();
+        }
+        else if (mode == "DeleteUsr")
+        {
+            DeleteUser();
+        }
+        else if (mode == "Add Book")
+        {
+            ShowHideInputs("display:none", "display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+            ShowHideButtons("display:block", "display:block", "display:block", "display:block", "display:block", "display:block");
+
+            InputBTNStyle = "display:none";
+            int id = books.Any() ? books.Max(b => b.Id) + 1 : 1;
+            books.Add(new Book { Id = id, Title = title, Author = author, ISBN = isbn });
+        }
+        else if (mode == "Add User")
+        {
+            ShowHideInputs("display:none", "display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+            ShowHideButtons("display:block", "display:block", "display:block", "display:block", "display:block", "display:block");
+
+            InputBTNStyle = "display:none";
+            int id = users.Any() ? users.Max(u => u.Id) + 1 : 1;
+            users.Add(new User { Id = id, Name = title, Email = author });
+        }
+        else if (mode == "Borrow")
+        {
+
+            ShowHideInputs("display:none", "display:block", "display:none", "display:none", "display:block", "display:none", "display:none");
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+            text = "Book: ID: "+book_ID + "\nUser ID: " + user_ID;
+            InputBTNStyle = "display:block";
+            mode = "UsrBorrow";
+            text = "";
+            cmd = "Enter the ID of the book the user wants to borrow.";
+            ListUsers();
+            cmd2 = "Enter the ID of the user.";
+            book_ID = title;
+        }
+        else if (mode == "UsrBorrow")
+        {
+            ListUsers();
+            cmd2 = "Enter the ID of the user.";
+            user_ID=author;
+            BorrowBook(book_ID, user_ID);
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:block", "display:none");
+        }
+        else if (mode == "Return")
+        {
+
+            ShowHideInputs("display:none", "display:block", "display:none", "display:none", "display:block", "display:none", "display:none");
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+            text = "Book: ID: " + book_ID + "\nUser ID: " + user_ID;
+            InputBTNStyle = "display:block";
+            mode = "UsrReturn";
+            text = "";//ReturnBook(string bID, string uID)
+            cmd = "Enter the ID of the user.";
+            ListBorrowedBooks();
+            cmd2 = "Enter the ID of the book the user wants to return.";
+            user_ID = title;
+        }
+        else if (mode == "UsrReturn")
+        {
+            ListBorrowedBooks();
+            cmd2 = "Enter the ID of the book the user wants to return.";
+            book_ID = author;
+            ReturnBook(book_ID, user_ID);
+            ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:block", "display:none");
+        }
+    }
+
+   
+
+    void button1()
+    {
+        ChangeMenu(btn1);
+
+        directions = "Manage Books";
+    }
+    void button2()
+    {
+        ChangeMenu(btn2);
+        directions = "Manage Users";
+    }
+    void button3()
+    {
+        ChangeMenu(btn3);
+        directions = "Borrow Books";
+    }
+    void button4()
+    {
+        ChangeMenu(btn4);
+        directions = "Return Books";
+    }
+    void Back()
+    {
+        directions = "Return Books"; 
+        //if (mode == "Manage Books")
+        { 
+            btn1 = "Manage Books";
+            btn2 = "Manage Users";
+            btn3 = "Borrow Books";
+            btn4 = "Return Books";
+            BTN5Style = "display:none";
+            Title_Text_Style = "display:none";
+            text_style = "display:none";
+            ShowHideInputs("display:none", "display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+            ShowHideButtons("display:block", "display:block", "display:block", "display:block", "display:none", "display:block");
+            text = "";
+            text_style = "display:none;";
+        }
+    }
+
+    void ShowList()
+    {
+        ShowHideInputs("display:none", "display:none", "display:none", "display:none", "display:none", "display:none", "display:none");
+        ShowHideButtons("display:none", "display:none", "display:none", "display:none", "display:block", "display:none");
+
+        text_style = "display:block;";
+        text = ("\nBorrowed Books:");
+
+        foreach (var entry in borrowedBooks)
+        {
+            text+=($"User: {entry.Key.Name}\n");
+
+            foreach (var book in entry.Value)
+            {
+                text+=($"{book.Title} by {book.Author} (ISBN: {book.ISBN})\n");
+            } 
+        }
+    }
+
+    void ListBorrowedBooks()
+    {
+
+        text=("\nBorrowed Books:");
+
+        foreach (var entry in borrowedBooks)
+        {
+            text+=($"User: {entry.Key.Name}\n");
+
+            foreach (var book in entry.Value)
+            {
+              text+=($"{book.Title} by {book.Author} (ISBN: {book.ISBN})\n");
+            } 
+        }
+    }
+}
